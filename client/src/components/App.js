@@ -1,21 +1,53 @@
+import 'materialize-css/dist/css/materialize.min.css';
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Route } from 'react-router-dom';
+import { connect } from 'react-redux';
+import * as actions from '../actions';
+
+
+import Header from './Header';
+import LandingPage from './LandingPage';
+import LoginPage from './LoginPage';
+import Dashboard from './Dashboard';
+
 
 class App extends Component {
+  componentDidMount() {
+    this.props.fetchUser();
+  }
+
+  renderContent(){
+    switch(this.props.auth) {
+      case null:
+      case false:
+        return (
+          <div>
+            <Dashboard />
+          </div>
+        );
+      default:
+        return;
+    }
+  }
+
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div className="container blue-grey lighten-5">
+        <BrowserRouter>
+          <div>
+            <Header />
+            <Route exact path="/" component={ LandingPage } />
+            <Route exact path="/" component={ LoginPage } />
+            <Route exact path="/home" component={ Dashboard } />
+          </div>
+        </BrowserRouter>
       </div>
     );
   }
+};
+
+function mapStateToProps(state){
+  return { auth: state.auth }
 }
 
-export default App;
+export default connect(mapStateToProps, actions)(App);

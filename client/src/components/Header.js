@@ -1,47 +1,50 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import Payments from './Payments';
+
+import BurgerMenu from './BurgerMenu';
+
+import './Nav.css';
 
 class Header extends Component {
+
   renderContent() {
-    switch (this.props.auth) {
+    console.log("Props:", this.props);
+    switch(this.props.auth) {
       case null:
-        return;
+        return 'Logging in...';
       case false:
-        return <li><a href="/auth/facebook">Login With Facebook</a></li>;
+        return;
       default:
-        return [
-          <li key="1"><Payments /></li>,
-          <li key="3" style={{ margin: '0 10px' }}>
-            Credits: {this.props.auth.credits}
-          </li>,
-          <li key="2"><a href="/api/logout">Logout</a></li>
-        ];
+        return (
+          <div>
+            <li>
+              <div>
+                <BurgerMenu />
+              </div>
+            </li>
+          </div>
+      );
     }
   }
 
   render() {
     return (
-      <nav>
-        <div className="nav-wrapper">
-          <Link
-            to={this.props.auth ? '/orders' : '/'}
-            className="left brand-logo"
-          >
-            Emaily
-          </Link>
-          <ul className="right">
+      <nav className="blue darken-4">
+        <div>
+          <ul className="left">
             {this.renderContent()}
           </ul>
+          <Link to={ this.props.auth ? "/home" : "/" } className="brand-logo Center" >Let's Order!</Link>
         </div>
       </nav>
     );
   }
 }
 
-function mapStateToProps({ auth }) {
-  return { auth };
+
+function mapStateToProps(state){
+  return { auth: state.auth }
 }
 
 export default connect(mapStateToProps)(Header);

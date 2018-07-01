@@ -1,0 +1,27 @@
+.login_button {
+  padding: 0px;
+  width: 60%;
+}
+
+.icon_text_container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.icon_container {
+  display: flex;
+  padding-right:15px;
+}
+
+.google_login_text {
+  padding-right: 25px;
+}
+
+.facebook_login_text {
+  padding-right: 10px;
+}
+
+.twitter_login_text {
+  padding-right: 20px;
+}
