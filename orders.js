@@ -198,10 +198,10 @@ function createFakeData()
    }
    var date = new_date;
  }
- console.log(orders)
- // pushOrdersArray(orders);
+ // console.log(orders)
+ pushOrdersArray(orders);
 }
 
 // console.log(minutes(new Date()))
 // minutes(new Date());
-createFakeData();
+// createFakeData();
