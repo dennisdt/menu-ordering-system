@@ -204,4 +204,4 @@ function createFakeData()
 
 // console.log(minutes(new Date()))
 // minutes(new Date());
-// createFakeData();
+createFakeData();
