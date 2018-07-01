@@ -1,28 +1,45 @@
 import React, { Component } from 'react';
-import { BrowserRouter, Route } from 'react-router-dom';
 import { connect } from 'react-redux';
-import * as actions from '../actions';
+import LandingPage from './LandingPage';
+import LoginPage from './LoginPage';
+import MessageBubble from './MessageBubble';
+import AudioButton from './AudioButton';
+import SendButton from './SendButton';
 
-import Header from './Header';
-import Landing from './FoodMenu';
 
 class Dashboard extends Component {
-  componentDidMount() {
-    this.props.fetchUser();
+
+  renderContent( ) {
+    switch(this.props.auth) {
+      case false:
+        return (
+          <div>
+            <LandingPage />
+            <LoginPage />
+          </div>
+        );
+      default:
+        return (
+          <div>
+            <MessageBubble />
+            <AudioButton />
+            <SendButton />
+          </div>
+        );
+    }
   }
 
-  render() {
-    return (
-      <div className="container">
-        <BrowserRouter>
-          <div>
-            <Header />
-            <Route exact path="/foodmenu" component={FoodMenu} />
-          </div>
-        </BrowserRouter>
+  render(){
+    return(
+      <div>
+        {this.renderContent()}
       </div>
     );
   }
 }
 
-export default connect(null, actions)(Dashboard);
+function mapStateToProps(state){
+  return {auth: state.auth}
+}
+
+export default connect(mapStateToProps)(Dashboard);
