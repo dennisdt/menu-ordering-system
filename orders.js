@@ -4,6 +4,7 @@ var async = require('async');
 
 var url = "mongodb://forrest:forrest123@ds123981.mlab.com:23981/overclocked";
 
+// push one order to mongo DB
 function pushOrder(orderID, customerID, itemID, itemQTY)
 {
   // Connect to MongoDB
@@ -31,6 +32,7 @@ function pushOrder(orderID, customerID, itemID, itemQTY)
   });
 }
 
+// push checkout orders
 function pushOrders(checkout)
 {
   var promise = new Promise(function(resolve, reject){
@@ -43,6 +45,7 @@ function pushOrders(checkout)
   return promise;
 }
 
+// get next order ID
 function getNextOrderID()
 {
   var promise = new Promise(function(resolve, reject) {
@@ -67,6 +70,7 @@ function getNextOrderID()
   return promise;
 }
 
+// set order #id status to 'cancelled'
 function cancelOrder(id)
 {
   var MongoClient = require('mongodb').MongoClient;
@@ -85,6 +89,7 @@ function cancelOrder(id)
   });
 }
 
+// set order #id status to 'fulfilled'
 function fulfillOrder(id)
 {
   var MongoClient = require('mongodb').MongoClient;
@@ -103,6 +108,7 @@ function fulfillOrder(id)
   });
 }
 
+//get current date in format e.g. Jun 30 2018 18:32:00
 function getDate()
 {
   var date = new Date();
@@ -111,7 +117,3 @@ function getDate()
   var parsed = datearray[1] + " " + datearray[2] + " " + datearray[3] + " " + datearray[4];
   return parsed;
 }
-
-// var checkout_sample = [{"customerID":4,"itemID":1,"itemQTY":1}];
-// pushOrders(checkout_sample);
-cancelOrder("5b38265e6fceb045f8b52105");
