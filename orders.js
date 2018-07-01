@@ -1,10 +1,10 @@
 var MongoClient = require('mongodb').MongoClient;
+var ObjectID = require('mongodb').ObjectID;
 var async = require('async');
+
 var url = "mongodb://forrest:forrest123@ds123981.mlab.com:23981/overclocked";
 
-// var orders_sample = [{"orderID":1,"customerID":1,"itemID":1,"itemQty":1,"time_placed":"1/1/2018 9:45","time_fulfilled":"1/1/2018 9:55","time_revised":""},{"orderID":2,"customerID":2,"itemID":2,"itemQty":1,"time_placed":"1/1/2018 9:45","time_fulfilled":"1/1/2018 9:55","time_revised":""}];
-
-function pushOrder(orderID, customerID, itemID, itemQTY, time_placed)
+function pushOrder(orderID, customerID, itemID, itemQTY)
 {
   // Connect to MongoDB
 
@@ -19,7 +19,7 @@ function pushOrder(orderID, customerID, itemID, itemQTY, time_placed)
     'customerID': customerID,
     'itemID': itemID,
     'itemQTY': itemQTY,
-    'time_placed': time_placed,
+    'time_placed': getDate(),
     'time_fulfilled': '',
     'time_cancelled': '',
     'status': 'pending'};
@@ -36,16 +36,12 @@ function pushOrders(checkout)
   var promise = new Promise(function(resolve, reject){
     async.each(checkout, function(order, callback){
       getNextOrderID().then(function(next_id) {
-        pushOrder(next_id, order.customerID, order.itemID, order.itemQTY, order.time_placed);
+        pushOrder(next_id, order.customerID, order.itemID, order.itemQTY);
       });
     });
   });
   return promise;
 }
-
-// var checkout_sample = [{"customerID":3,"itemID":1,"itemQTY":1,"time_placed":"1/1/2018 9:45"},
-// {"customerID":3,"itemID":2,"itemQTY":1,"time_placed":"1/1/2018 9:45"}];
-// pushOrders(checkout_sample);
 
 function getNextOrderID()
 {
@@ -71,7 +67,51 @@ function getNextOrderID()
   return promise;
 }
 
-function cancelOrder(orderID)
+function cancelOrder(id)
 {
+  var MongoClient = require('mongodb').MongoClient;
 
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("overclocked");
+
+    var newValues = { $set: {'status': 'cancelled', 'time_cancelled': getDate() } };
+
+    dbo.collection("orders").updateOne({"_id": ObjectID(id)}, newValues, function(err, res) {
+      if (err) throw err;
+    console.log("1 order cancelled");
+      db.close();
+    });
+  });
 }
+
+function fulfillOrder(id)
+{
+  var MongoClient = require('mongodb').MongoClient;
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("overclocked");
+
+    var newValues = { $set: {'status': 'fulfilled', 'time_fulfilled': getDate() } };
+
+    dbo.collection("orders").updateOne({"_id": ObjectID(id)}, newValues, function(err, res) {
+      if (err) throw err;
+      console.log("1 order fulfilled");
+      db.close();
+    });
+  });
+}
+
+function getDate()
+{
+  var date = new Date();
+  var datestring = date.toString();
+  var datearray = datestring.split(" ");
+  var parsed = datearray[1] + " " + datearray[2] + " " + datearray[3] + " " + datearray[4];
+  return parsed;
+}
+
+// var checkout_sample = [{"customerID":4,"itemID":1,"itemQTY":1}];
+// pushOrders(checkout_sample);
+cancelOrder("5b38265e6fceb045f8b52105");
