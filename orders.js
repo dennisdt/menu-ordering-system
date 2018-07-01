@@ -63,6 +63,142 @@ function pushOrders(checkout)
   return promise;
 }
 
+function pendingOrders()
+{
+  var promise = new Promise(function(resolve, reject) {
+    var MongoClient = require('mongodb').MongoClient;
+    MongoClient.connect(url, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db("overclocked");
+      var current_date = new Date();
+      var start_date = new Date(current_date.getTime() - 24*60*60000);
+      var query = { status: 'pending', time_placed: {
+        $gte: start_date } };
+
+      dbo.collection("orders").find(query).toArray(function(err, orders) {
+        if (err) throw err;
+
+        var same_day_orders = [];
+        for (var i = 0; i < orders.length; i++)
+        {
+          var order = orders[i];
+          var order_date = order.time_placed;
+          if(order_date.getDate() === current_date.getDate())
+          {
+            same_day_orders.push(order);
+          }
+        }
+        console.log(same_day_orders)
+        resolve(orders);
+        db.close();
+      });
+    });
+  });
+  return promise;
+}
+
+function fulfilledOrders()
+{
+  var promise = new Promise(function(resolve, reject) {
+    var MongoClient = require('mongodb').MongoClient;
+    MongoClient.connect(url, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db("overclocked");
+      var current_date = new Date();
+      var start_date = new Date(current_date.getTime() - 24*60*60000);
+      var query = { status: 'fulfilled', time_placed: {
+        $gte: start_date } };
+
+      dbo.collection("orders").find(query).toArray(function(err, orders) {
+        if (err) throw err;
+
+        var same_day_orders = [];
+        for (var i = 0; i < orders.length; i++)
+        {
+          var order = orders[i];
+          var order_date = order.time_placed;
+          if(order_date.getDate() === current_date.getDate())
+          {
+            same_day_orders.push(order);
+          }
+        }
+        console.log(same_day_orders)
+        resolve(orders);
+        db.close();
+      });
+    });
+  });
+  return promise;
+}
+
+function cancelledOrders()
+{
+  var promise = new Promise(function(resolve, reject) {
+    var MongoClient = require('mongodb').MongoClient;
+    MongoClient.connect(url, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db("overclocked");
+      var current_date = new Date();
+      var start_date = new Date(current_date.getTime() - 24*60*60000);
+      var query = { status: 'cancelled', time_placed: {
+        $gte: start_date } };
+
+      dbo.collection("orders").find(query).toArray(function(err, orders) {
+        if (err) throw err;
+
+        var same_day_orders = [];
+        for (var i = 0; i < orders.length; i++)
+        {
+          var order = orders[i];
+          var order_date = order.time_placed;
+          if(order_date.getDate() === current_date.getDate())
+          {
+            same_day_orders.push(order);
+          }
+        }
+        console.log(same_day_orders)
+        resolve(orders);
+        db.close();
+      });
+    });
+  });
+  return promise;
+}
+
+function allOrders()
+{
+  var promise = new Promise(function(resolve, reject) {
+    var MongoClient = require('mongodb').MongoClient;
+    MongoClient.connect(url, function(err, db) {
+      if (err) throw err;
+      var dbo = db.db("overclocked");
+      var current_date = new Date();
+      var start_date = new Date(current_date.getTime() - 24*60*60000);
+      var query = { time_placed: {
+        $gte: start_date } };
+
+      dbo.collection("orders").find(query).toArray(function(err, orders) {
+        if (err) throw err;
+
+        var same_day_orders = [];
+        for (var i = 0; i < orders.length; i++)
+        {
+          var order = orders[i];
+          var order_date = order.time_placed;
+          if(order_date.getDate() === current_date.getDate())
+          {
+            same_day_orders.push(order);
+          }
+        }
+        console.log(same_day_orders)
+        resolve(orders);
+        db.close();
+      });
+    });
+  });
+  return promise;
+}
+
 // get next order ID
 function getNextOrderID()
 {
@@ -164,6 +300,7 @@ function createFakeData()
        order['time_placed'] = new_date;
        order['time_fulfilled'] = fulfilled_date;
        order['time_cancelled'] = '';
+       order['status'] = 'fulfilled';
 
        orders.push(order);
 
@@ -191,6 +328,7 @@ function createFakeData()
          order_addn['time_placed'] = new_date;
          order_addn['time_fulfilled'] = fulfilled_date;
          order_addn['time_cancelled'] = '';
+         order_addn['status'] = 'fulfilled';
 
          orders.push(order_addn);
        }
@@ -204,10 +342,14 @@ function createFakeData()
  pushOrdersArray(orders);
 }
 
-// var checkout = [{'customerID': '1292', 'itemID': 3, 'itemQTY': 2},{'customerID': '1292', 'itemID': 1, 'itemQTY': 1}];
+// pendingOrders();
+// cancelledOrders();
+// fulfilledOrders();
+// allOrders();
+// var checkout = [{'customerID': '8820', 'itemID': 3, 'itemQTY': 1}];
 // pushOrders(checkout);
-// cancelOrder('5b3885c7b236c62ab0984d3e')
-// fulfillOrder('5b3885c7b236c62ab0984d3d')
+// cancelOrder('5b38a89f81fdfd4bc845f950')
+// fulfillOrder('5b38ad69e2f2bb1ccc98d12c')
 // console.log(minutes(new Date()))
 // minutes(new Date());
 // createFakeData();
