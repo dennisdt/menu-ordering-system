@@ -32,6 +32,23 @@ function pushOrder(orderID, customerID, itemID, itemQTY)
   });
 }
 
+function pushOrdersArray(orders)
+{
+  // Connect to MongoDB
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("overclocked");
+
+  // Add single order to collection Orders
+
+  dbo.collection("orders").insertMany(orders, function(err, res) {
+    if (err) throw err;
+    db.close();
+    });
+  });
+}
+
 // push checkout orders
 function pushOrders(checkout)
 {
@@ -52,10 +69,9 @@ function getNextOrderID()
     MongoClient.connect(url, function(err, db) {
       if (err) throw err;
       var dbo = db.db("overclocked");
-
       dbo.collection("orders").find({}).toArray(function(err, orders) {
         if (err) throw err;
-        var max = 1;
+        var max = 0;
         for (var i = 0; i < orders.length; i++)
         {
           var order = orders[i];
@@ -108,45 +124,6 @@ function fulfillOrder(id)
   });
 }
 
-function pushOrderWithDate(orderID, customerID, itemID, itemQTY, orderDate)
-{
-  // Connect to MongoDB
-
-  MongoClient.connect(url, function(err, db) {
-    if (err) throw err;
-    var dbo = db.db("overclocked");
-
-  // Add single order to collection Orders
-
-  var order = {
-    'orderID': orderID,
-    'customerID': customerID,
-    'itemID': itemID,
-    'itemQTY': itemQTY,
-    'time_placed': new Date(),
-    'time_fulfilled': '',
-    'time_cancelled': '',
-    'status': 'pending'};
-
-  dbo.collection("orders").insertOne(order, function(err, res) {
-    if (err) throw err;
-    db.close();
-    });
-  });
-}
-
-function pushOrdersWithDate(checkout, orderDate)
-{
-  var promise = new Promise(function(resolve, reject){
-    async.each(checkout, function(order, callback){
-      getNextOrderID().then(function(next_id) {
-        pushOrderWithDate(next_id, order.customerID, order.itemID, order.itemQTY, orderDate);
-      });
-    });
-  });
-  return promise;
-}
-
 function minutes(date)
 {
   var hours = date.getHours();
@@ -157,10 +134,13 @@ function minutes(date)
 function createFakeData()
 {
  var date = new Date('2018-01-01T14:00:00Z');
+ var orderID = 1;
  var current = new Date();
+ var orders = [];
  while(date < current)
  {
    var new_date = new Date(date.getTime() + 60000);
+   var fulfilled_date = new Date(date.getTime() + 12*60000);
    var hour = new_date.getHours();
    if(hour > 5 && hour < 22)
    {
@@ -168,44 +148,60 @@ function createFakeData()
      var prob = -1 * .00000217 * Math.pow(mins - 840, 2) + .5;
      if (Math.random () < prob)
      {
-       var checkout = [];
-
-       var checkout_item = {};
+       var order = {};
+       order['orderID'] = orderID;
        var customerID = Math.floor(Math.random() * 10000);
-       checkout_item['customerID'] = customerID;
-       checkout_item['itemID'] = Math.floor(Math.random() * 13) + 1;
+       order['customerID'] = customerID;
+       var first_itemID = Math.floor(Math.random() * 13) + 1;
+       order['itemID'] = first_itemID;
        var qty = 0;
        var qtyprob = Math.floor(Math.random() * 10);
        if(qtyprob < 5) qty = 1;
        if(qtyprob >= 5 && qtyprob < 8) qty = 2;
        if(qtyprob >= 8) qty = 3;
-       checkout_item['itemQTY'] = qty;
+       order['itemQTY'] = qty;
+       order['time_placed'] = new_date;
+       order['time_fulfilled'] = fulfilled_date;
+       order['time_cancelled'] = '';
 
-       checkout.push(checkout_item);
+       orders.push(order);
 
        var additional_rand = Math.floor(Math.random() * 10);
 
        if(additional_rand < 3)
        {
-         var checkout_item = {};
-         checkout_item['customerID'] = customerID;
-         checkout_item['itemID'] = Math.floor(Math.random() * 13) + 1;
+         var order_addn = {};
+         order_addn['orderID'] = orderID;
+         order_addn['customerID'] = customerID;
+         var second_itemID = Math.floor(Math.random() * 13) + 1;
+         if(second_itemID == first_itemID)
+         {
+           second_itemID++;
+           if(second_itemID == 14) second_itemID == 1;
+         }
+         order_addn['itemID'] = second_itemID;
          var qty = 0;
          var qtyprob = Math.floor(Math.random() * 10);
          if(qtyprob < 5) qty = 1;
          if(qtyprob >= 5 && qtyprob < 8) qty = 2;
          if(qtyprob >= 8) qty = 3;
-         checkout_item['itemQTY'] = qty;
+         order_addn['itemQTY'] = qty;
+         order_addn['time_placed'] = new_date;
+         order_addn['time_fulfilled'] = fulfilled_date;
+         order_addn['time_cancelled'] = '';
 
-         checkout.push(checkout_item);
+         orders.push(order_addn);
        }
-       pushOrdersWithDate(checkout);
+
+       orderID++;
      }
    }
    var date = new_date;
  }
+ // console.log(orders)
+ pushOrdersArray(orders);
 }
 
 // console.log(minutes(new Date()))
 // minutes(new Date());
-createFakeData();
+// createFakeData();
