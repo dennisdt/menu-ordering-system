@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Menu Ordering System Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+                <div class="col-md-12 jumbotron text-center">
+                    <h1>Bonnie's Restaurant Analytics</h1>
+                    <p>Use the interactive charts below to explore the dataset</p>
+                </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <div class="well">
+                    <h5>Select Units:</h5>
+                    <select id="selUnits">
+                        <option value="Revenue">Revenue</option>
+                        <option value="Quantity">Quanity</option>
+                    </select>
+                    <h5>Select Interval:</h5>
+                    <select id="selInterval">
+                        <option value="Hour">Hour</option>
+                        <option value="Day">Day</option>
+                        <option value="Month">Month</option>
+                    </select>
+                    <div class="form-group">
+                        <h5>Start Date:</h5>
+                        <input type="text" class="form-control" id="start-date" placeholder="YYYY-MM-DD">
+                    </div>
+                    <div class="form-group">
+                        <h5>End Date:</h5>
+                        <input type="text" class="form-control" id="end-date" placeholder="YYYY-MM-DD">
+                    </div>
+                    <div class="form-group">
+                        <a id="update" class="btn btn-default">Update</a>
+                    </div>
+                </div>
+
+                <div class="well">
+                    <h5>Generate Report:<h5>
+                    <div class="form-group">
+                        <a id="sales" class="btn btn-default">Sales Report</a>
+                    </div>
+                    <div class="form-group">
+                        <a id="items" class="btn btn-default">Top Items Report</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-10">
+                <div id="perf-bar"></div>
+            </div>
+        </div>
+        <br>
+        <div class= "row">
+            <div class="col-md-offset-2 col-md-10">
+                <div id="top-items"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        function buildCharts(perfData, topItemsData) {
+            // Build bar Chart for performance
+            var barLayout = {
+                    hovermode: "closest", 
+                    margin: {
+                        "r": 10, 
+                        "t": 25, 
+                        "b": 40, 
+                        "l": 60
+                    }, 
+                    title: `${perfData['kind']} vs ${perfData['label']}`, 
+                    xaxis: {
+                        "title": `${perfData['label']}`
+                    }, 
+                    yaxis: {
+                        title: `${perfData['kind']}`
+                    }
+            };
+
+            var barData = [{
+                x: perfData['x'],
+                y: perfData['y'],
+                text: perfData['label'],
+                type: 'bar',
+                marker: {
+                    color: 'rgb(158,202,225)',
+                    opacity: 0.6,
+                    line: {
+                        color: 'rgb(8,48,107)',
+                        width: 1.5
+                    },
+                }
+            }];
+            var BAR = document.getElementById('perf-bar');
+            Plotly.plot(BAR, barData, barLayout);
+
+            // Build bar Chart for items
+            var itemsLayout = {
+                    hovermode: "closest", 
+                    margin: {
+                        "r": 10, 
+                        "t": 25, 
+                        "b": 40, 
+                        "l": 60
+                    }, 
+                    title: `${topItemsData['kind']} vs Items`, 
+                    xaxis: {
+                        "title": "Item"
+                    }, 
+                    yaxis: {
+                        title: `${topItemsData['kind']}`
+                    }
+            };
+
+            var itemsData = [{
+                x: topItemsData['x'],
+                y: topItemsData['y'],
+                text: topItemsData['itemID'],
+                type: 'bar',
+                marker: {
+                    color: 'rgb(158,202,225)',
+                    opacity: 0.6,
+                    line: {
+                        color: 'rgb(8,48,107)',
+                        width: 1.5
+                    },
+                }
+            }];
+            var ITEM = document.getElementById('top-items');
+            Plotly.plot(ITEM, itemsData, itemsLayout);
+
+        };
+
+        function updateCharts(perfData, topItemsData) {
+            // Update the bar Chart with the new data
+            var BAR = document.getElementById('perf-bar');
+            Plotly.restyle(BAR, 'x', [perfData['x']]);
+            Plotly.restyle(BAR, 'y', [perfData['y']]);
+            Plotly.restyle(BAR, 'text', [perfData['label']]);
+
+            var update = {
+                    title: `${perfData['kind']} vs ${perfData['label']}`, 
+                    xaxis: {
+                        "title": `${perfData['label']}`
+                    }, 
+                    yaxis: {
+                        title: `${perfData['kind']}`
+                    }
+            };
+
+            Plotly.relayout(BAR, update);
+
+            // Update the items bar Chart with the new data
+            var ITEMS = document.getElementById('top-items');
+            Plotly.restyle(ITEMS, 'x', [topItemsData['x']]);
+            Plotly.restyle(ITEMS, 'y', [topItemsData['y']]);
+            Plotly.restyle(ITEMS, 'text', [topItemsData['label']]);
+
+            var update = {
+                    title: `${topItemsData['kind']} vs Items`,
+                    yaxis: {
+                        title: `${topItemsData['kind']}`
+                    }
+            };
+
+            Plotly.relayout(ITEMS, update);
+        }
+
+
+        function getData(startDate, endDate, kind, interval, callback) {
+            // Use a request to grab the json data needed for all charts
+            console.log(`/get_charts/${startDate}/${endDate}/${kind}/${interval}`);
+            Plotly.d3.json(`/get_charts/${startDate}/${endDate}/${kind}/${interval}`, function(error, perfData) {
+                if (error) return console.warn(error);
+
+                Plotly.d3.json(`/get_top_items/${startDate}/${endDate}/${kind}/${interval}`, function(error, topItemsData) {
+                    if (error) return console.warn(error);
+                    callback(perfData, topItemsData);
+                });
+            });
+        }
+
+
+        function optionChanged(newSample) {
+            // Fetch new data each time a new sample is selected
+            getData(newSample, updateCharts);
+        }
+
+        // get the current date and time
+        var today = new Date();
+        var yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+        var yesterdayDate = yesterday.getFullYear()+'-'+(yesterday.getMonth()+1)+'-'+yesterday.getDate();
+
+        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+        var dateTime = date+' '+time;
+
+        var $unitDrop = document.querySelector("#selUnits");
+        var $intervalDrop = document.querySelector("#selInterval");
+        var $startDate = document.querySelector("#start-date");
+        var $endDate = document.querySelector("#end-date");
+        var $updateBtn = document.querySelector("#update");
+        var $salesBtn = document.querySelector("#sales");
+        var $itemsBtn = document.querySelector("#items");
+
+        // update charts
+        $updateBtn.addEventListener("click", getData($startDate.value, $endDate.value, $unitDrop.value, $intervalDrop.value, updateCharts));
+
+
+        // initialize our plots
+        getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
+
+
+        // get sales report
+        //$salesBtn.addEventListener("click", getSalesReport);
+
+        // get items report
+        //$itemsBtn.addEventListener("click", getItemsReport);
+
+        // function getSalesReport() {
+        //     Plotly.d3.json(`get_perf_report/${$startDate.value}/${$endDate.value}/${$intervalDrop}`, function(err, link){
+        //         return link
+        //     });
+        // }
+
+        // function getItemsReport() {
+        //     Plotly.d3.json(`get_item_report/${$startDate.value}/${$endDate.value}/${$unitDrop}/${$intervalDrop}`, function(err, link) {
+        //         return link
+        //     });
+        // }
+
+    </script>
+
+
+</body>
+</html>
