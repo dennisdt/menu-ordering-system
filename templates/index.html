@@ -20,28 +20,30 @@
         <div class="row">
             <div class="col-md-2">
                 <div class="well">
-                    <h5>Select Units:</h5>
-                    <select id="selUnits">
-                        <option value="Revenue">Revenue</option>
-                        <option value="Quantity">Quanity</option>
-                    </select>
-                    <h5>Select Interval:</h5>
-                    <select id="selInterval">
-                        <option value="Hour">Hour</option>
-                        <option value="Day">Day</option>
-                        <option value="Month">Month</option>
-                    </select>
-                    <div class="form-group">
-                        <h5>Start Date:</h5>
-                        <input type="text" class="form-control" id="start-date" placeholder="YYYY-MM-DD">
-                    </div>
-                    <div class="form-group">
-                        <h5>End Date:</h5>
-                        <input type="text" class="form-control" id="end-date" placeholder="YYYY-MM-DD">
-                    </div>
-                    <div class="form-group">
-                        <a id="update" class="btn btn-default">Update</a>
-                    </div>
+                    <form>
+                        <h5>Select Units:</h5>
+                        <select id="selUnits">
+                            <option value="Revenue">Revenue</option>
+                            <option value="Quantity">Quanity</option>
+                        </select>
+                        <h5>Select Interval:</h5>
+                        <select id="selInterval">
+                            <option value="Hour">Hour</option>
+                            <option value="Day">Day</option>
+                            <option value="Month">Month</option>
+                        </select>
+                        <div class="form-group">
+                            <h5>Start Date:</h5>
+                            <input type="text" class="form-control" id="start-date" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="form-group">
+                            <h5>End Date:</h5>
+                            <input type="text" class="form-control" id="end-date" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="form-group">
+                            <button id="update" class="btn btn-default" type="submit">Update</button>
+                        </div>
+                    </form>
                 </div>
 
                 <div class="well">
@@ -73,14 +75,14 @@
             var barLayout = {
                     hovermode: "closest", 
                     margin: {
-                        "r": 10, 
-                        "t": 25, 
-                        "b": 40, 
-                        "l": 60
+                        r: 10, 
+                        t: 25, 
+                        b: 40, 
+                        l: 60
                     }, 
                     title: `${perfData['kind']} vs ${perfData['label']}`, 
                     xaxis: {
-                        "title": `${perfData['label']}`
+                        title: `${perfData['label']}`
                     }, 
                     yaxis: {
                         title: `${perfData['kind']}`
@@ -178,22 +180,17 @@
 
 
         function getData(startDate, endDate, kind, interval, callback) {
+
             // Use a request to grab the json data needed for all charts
-            console.log(`/get_charts/${startDate}/${endDate}/${kind}/${interval}`);
+            console.log('*******' + `/get_charts/${startDate}/${endDate}/${kind}/${interval}`);
             Plotly.d3.json(`/get_charts/${startDate}/${endDate}/${kind}/${interval}`, function(error, perfData) {
-                if (error) return console.warn(error);
+                //if (error) return console.warn(error);
 
                 Plotly.d3.json(`/get_top_items/${startDate}/${endDate}/${kind}/${interval}`, function(error, topItemsData) {
-                    if (error) return console.warn(error);
+                    //if (error) return console.warn(error);
                     callback(perfData, topItemsData);
                 });
             });
-        }
-
-
-        function optionChanged(newSample) {
-            // Fetch new data each time a new sample is selected
-            getData(newSample, updateCharts);
         }
 
         // get the current date and time
@@ -213,13 +210,22 @@
         var $updateBtn = document.querySelector("#update");
         var $salesBtn = document.querySelector("#sales");
         var $itemsBtn = document.querySelector("#items");
-
+        console.log($updateBtn);
+        console.log($startDate.value);
         // update charts
         $updateBtn.addEventListener("click", getData($startDate.value, $endDate.value, $unitDrop.value, $intervalDrop.value, updateCharts));
 
+        if (yesterdayDate != "" && date != ""){
+            console.log(yesterdayDate);
+            console.log(date);
 
+            getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
+        }
+        else{
+            console.log("Dates are empty");
+        }
         // initialize our plots
-        getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
+        //getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
 
 
         // get sales report
