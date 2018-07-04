@@ -7,7 +7,7 @@ import plotly.graph_objs as go
 import sys, json
 import os.path
 
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, jsonify, render_template, send_from_directory, session
 app = Flask(__name__)
 
 # time today
@@ -240,7 +240,7 @@ def get_top_items(start_date=(time_now - timedelta(days=7)), end_date=time_now, 
     '''
     data = {"x": x_val, "y": y_val, "kind": kind, "itemID": list(map(int, top_item_df["itemID"].tolist()))}
     return jsonify(data)
-
+@app.route('/get_perf_report/')
 @app.route('/get_perf_report/<start_date>/<end_date>/<interval>')
 def get_perf_report(start_date=time_day, end_date=time_now, interval='Hour'):
     # converts start_date and end_date to datetime objects
@@ -253,8 +253,8 @@ def get_perf_report(start_date=time_day, end_date=time_now, interval='Hour'):
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
 
     # if the file already exists then return it else generate a new one
-    if os.path.isfile(f'reports/performance/{start_date.date()}_{end_date.date()}_{label}_report.xlsx'):
-        return send_from_directory('reports/performance/', f'{start_date.date()}_{end_date.date()}_{label}_report.xlsx') 
+    if os.path.isfile(f'reports/performance/{start_date.date()}_{end_date.date()}_{interval}_report.xlsx'):
+        return send_from_directory('reports/performance/', f'{start_date.date()}_{end_date.date()}_{interval}_report.xlsx', as_attachment=True) 
     else:
 
         # if interval is month, round to end_time to end of month and start_time to beginning of month
@@ -282,33 +282,30 @@ def get_perf_report(start_date=time_day, end_date=time_now, interval='Hour'):
             # daily groupby
             grouped = merged_df.groupby([times.hour]).sum()
             grouped["unique_customers"] = merged_df.groupby([times.hour]).nunique()["customerID"]
-            label = "Hour"
         elif interval == 'Day':
             # extract the date from "time_placed" column
             merged_df["date"] = merged_df["time_placed"].map(lambda x: x.date())
             # groupby day
             grouped = merged_df.groupby(["date"]).sum()
             grouped["unique_customers"] = merged_df.groupby(["date"]).nunique()["customerID"]
-            label = "Day"
         elif interval == 'Month':
             # monthly groupby
             grouped = merged_df.groupby(["month"]).sum()
             grouped["unique_cust"] = merged_df.groupby(["month"]).nunique()["customerID"]
-            label = "Month" 
         else:
             # yearly groupby
             grouped = merged_df.groupby([times.year]).sum()
             grouped["unique_customers"] = merged_df.groupby([times.year]).nunique()["customerID"]
-            label = "Year"
 
         grouped.drop(['itemID', 'orderID', 'price'], axis=1, inplace=True)
         
         # save to excel
-        grouped.to_excel(f'reports/performance/{start_date.date()}_{end_date.date()}_{label}_report.xlsx', sheet_name="Sheet1")
+        grouped.to_excel(f'reports/performance/{start_date.date()}_{end_date.date()}_{interval}_report.xlsx', sheet_name="Sheet1")
         
         # output link to download
-        return send_from_directory('reports/performance/', f'{start_date.date()}_{end_date.date()}_{label}_report.xlsx')
+        return send_from_directory('reports/performance/', f'{start_date.date()}_{end_date.date()}_{interval}_report.xlsx', as_attachment=True)
 
+@app.route('/get_item_report/')
 @app.route('/get_item_report/<start_date>/<end_date>/<kind>/<interval>')
 def get_item_report(start_date=time_year, end_date=time_now, kind='Revenue', interval='Hour'):
     # converts start_date and end_date to datetime objects
@@ -320,8 +317,8 @@ def get_item_report(start_date=time_year, end_date=time_now, kind='Revenue', int
     elif (type(end_date) is not datetime):
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
 
-    if os.path.isfile(f'reports/items/{start_date.date()}_{end_date.date()}_{label}_report.xlsx'):
-        return send_from_directory('reports/items/', f'{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx')
+    if os.path.isfile(f'reports/items/{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx'):
+        return send_from_directory('reports/items/', f'{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx', as_attachment=True)
     else:
 
         # if interval is month, round to end_time to end of month and start_time to beginning of month
@@ -363,7 +360,7 @@ def get_item_report(start_date=time_year, end_date=time_now, kind='Revenue', int
             top_item_df[cols_to_keep].to_excel(f'reports/items/{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx', sheet_name='Sheet1', index=False)
 
         # output link to download
-        return send_from_directory('reports/items/', f'{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx')
+        return send_from_directory('reports/items/', f'{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx', as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)

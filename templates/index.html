@@ -20,7 +20,7 @@
         <div class="row">
             <div class="col-md-2">
                 <div class="well">
-                    <form>
+                    <form onsubmit="updateCharts()">
                         <h5>Select Units:</h5>
                         <select id="selUnits">
                             <option value="Revenue">Revenue</option>
@@ -205,15 +205,18 @@
 
         var $unitDrop = document.querySelector("#selUnits");
         var $intervalDrop = document.querySelector("#selInterval");
-        var $startDate = document.querySelector("#start-date");
-        var $endDate = document.querySelector("#end-date");
+        var $startDate = document.getElementById("#start-date");
+        var $endDate = document.getElementById("#end-date");
         var $updateBtn = document.querySelector("#update");
         var $salesBtn = document.querySelector("#sales");
         var $itemsBtn = document.querySelector("#items");
-        console.log($updateBtn);
-        console.log($startDate.value);
+        console.log($startDate);
         // update charts
-        $updateBtn.addEventListener("click", getData($startDate.value, $endDate.value, $unitDrop.value, $intervalDrop.value, updateCharts));
+        //$updateBtn.addEventListener("submit", getData($startDate, $endDate, $unitDrop.value, $intervalDrop.value, updateCharts));
+        $updateBtn.addEventListener("submit", function(data){
+            console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"+data);
+        });
+
 
         if (yesterdayDate != "" && date != ""){
             console.log(yesterdayDate);
@@ -235,7 +238,7 @@
         //$itemsBtn.addEventListener("click", getItemsReport);
 
         // function getSalesReport() {
-        //     Plotly.d3.json(`get_perf_report/${$startDate.value}/${$endDate.value}/${$intervalDrop}`, function(err, link){
+        //     Plotly.d3.json(`/get_perf_report/${$startDate.value}/${$endDate.value}/${$intervalDrop}`, function(err, link){
         //         return link
         //     });
         // }
