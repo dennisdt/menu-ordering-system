@@ -223,7 +223,7 @@ def get_perf_report(start_date, end_date, interval='Hour'):
         return send_from_directory('reports/performance/', f'{start_date.date()}_{end_date.date()}_{interval}_report.xlsx', as_attachment=True)
 
 @app.route('/get_item_report/<start_date>/<end_date>/<kind>/<interval>')
-def get_item_report(start_date=time_year, end_date=time_now, kind='Revenue', interval='Hour'):
+def get_item_report(start_date, end_date, kind='Revenue', interval='Hour'):
     # converts start_date and end_date to datetime objects
     if (type(start_date) is not datetime) and (type(end_date) is not datetime):
         start_date = datetime.strptime(start_date, '%Y-%m-%d')
