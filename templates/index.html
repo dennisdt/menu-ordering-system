@@ -19,48 +19,49 @@
         </div>
         <div class="row">
             <div class="col-md-2">
-                <div class="well">
-                    <form onsubmit="updateCharts()">
-                        <h5>Select Units:</h5>
-                        <select id="selUnits">
-                            <option value="Revenue">Revenue</option>
-                            <option value="Quantity">Quanity</option>
-                        </select>
-                        <h5>Select Interval:</h5>
-                        <select id="selInterval">
-                            <option value="Hour">Hour</option>
-                            <option value="Day">Day</option>
-                            <option value="Month">Month</option>
-                        </select>
-                        <div class="form-group">
-                            <h5>Start Date:</h5>
-                            <input type="text" class="form-control" id="start-date" placeholder="YYYY-MM-DD">
-                        </div>
-                        <div class="form-group">
-                            <h5>End Date:</h5>
-                            <input type="text" class="form-control" id="end-date" placeholder="YYYY-MM-DD">
-                        </div>
-                        <div class="form-group">
-                            <button id="update" class="btn btn-default" type="submit">Update</button>
-                        </div>
-                    </form>
-                </div>
+                <form action="/send" method="POST">
 
-                <div class="well">
-                    <h5>Generate Report:<h5>
-                    <div class="form-group">
-                        <a id="sales" class="btn btn-default">Sales Report</a>
+                    <div class="well">
+                            <h5>Select Units:</h5>
+                            <select id="selUnits" name="kind">
+                                <option value="Revenue">Revenue</option>
+                                <option value="Quantity">Quanity</option>
+                            </select>
+                            <h5>Select Interval:</h5>
+                            <select id="selInterval" name="interval">
+                                <option value="Hour">Hour</option>
+                                <option value="Day">Day</option>
+                                <option value="Month">Month</option>
+                            </select>
+                            <div class="form-group">
+                                <h5>Start Date:</h5>
+                                <input type="text" class="form-control" id="start-date" name="startDate" placeholder="YYYY-MM-DD">
+                            </div>
+                            <div class="form-group">
+                                <h5>End Date:</h5>
+                                <input type="text" class="form-control" id="end-date" name="endDate" placeholder="YYYY-MM-DD">
+                            </div>
+                            <div class="form-group">
+                                <a id="update" href="#" class="btn btn-default">Update</a>
+                            </div>
                     </div>
-                    <div class="form-group">
-                        <a id="items" class="btn btn-default">Top Items Report</a>
+
+                    <div class="well">
+                        <h5>Generate Report:<h5>
+                        <div class="form-group">
+                            <button id="sales" class="btn btn-default" name="button" value="sales" type="submit">Sales Report</button>
+                        </div>
+                        <div class="form-group">
+                            <button id="items" class="btn btn-default" name="button" value="items" type="submit">Top Items Report</button>
+                        </div>
                     </div>
-                </div>
+                </form>
+
             </div>
             <div class="col-md-10">
                 <div id="perf-bar"></div>
             </div>
         </div>
-        <br>
         <div class= "row">
             <div class="col-md-offset-2 col-md-10">
                 <div id="top-items"></div>
@@ -76,8 +77,8 @@
                     hovermode: "closest", 
                     margin: {
                         r: 10, 
-                        t: 25, 
-                        b: 40, 
+                        t: 30, 
+                        b: 60, 
                         l: 60
                     }, 
                     title: `${perfData['kind']} vs ${perfData['label']}`, 
@@ -111,8 +112,8 @@
                     hovermode: "closest", 
                     margin: {
                         "r": 10, 
-                        "t": 25, 
-                        "b": 40, 
+                        "t": 30, 
+                        "b": 140, 
                         "l": 60
                     }, 
                     title: `${topItemsData['kind']} vs Items`, 
@@ -143,46 +144,59 @@
 
         };
 
-        function updateCharts(perfData, topItemsData) {
-            // Update the bar Chart with the new data
-            var BAR = document.getElementById('perf-bar');
-            Plotly.restyle(BAR, 'x', [perfData['x']]);
-            Plotly.restyle(BAR, 'y', [perfData['y']]);
-            Plotly.restyle(BAR, 'text', [perfData['label']]);
+        function updateCharts() {
+            var startDate = document.querySelector("#start-date").value;
+            var endDate = document.querySelector("#end-date").value;
+            var kind = document.querySelector("#selUnits").value;
+            var interval = document.querySelector("#selInterval").value;
 
-            var update = {
-                    title: `${perfData['kind']} vs ${perfData['label']}`, 
-                    xaxis: {
-                        "title": `${perfData['label']}`
-                    }, 
-                    yaxis: {
-                        title: `${perfData['kind']}`
-                    }
-            };
+            // Use a request to grab the json data needed for all charts
+            Plotly.d3.json(`/get_charts/${startDate}/${endDate}/${kind}/${interval}`, function(error, perfData) {
+                //if (error) return console.warn(error);
 
-            Plotly.relayout(BAR, update);
+                Plotly.d3.json(`/get_top_items/${startDate}/${endDate}/${kind}/${interval}`, function(error, topItemsData) {
+                    //if (error) return console.warn(error);
 
-            // Update the items bar Chart with the new data
-            var ITEMS = document.getElementById('top-items');
-            Plotly.restyle(ITEMS, 'x', [topItemsData['x']]);
-            Plotly.restyle(ITEMS, 'y', [topItemsData['y']]);
-            Plotly.restyle(ITEMS, 'text', [topItemsData['label']]);
+                    // Update the bar Chart with the new data
+                    var BAR = document.getElementById('perf-bar');
+                    Plotly.restyle(BAR, 'x', [perfData['x']]);
+                    Plotly.restyle(BAR, 'y', [perfData['y']]);
+                    Plotly.restyle(BAR, 'text', [perfData['label']]);
 
-            var update = {
-                    title: `${topItemsData['kind']} vs Items`,
-                    yaxis: {
-                        title: `${topItemsData['kind']}`
-                    }
-            };
+                    var updatePerf = {
+                            title: `${perfData['kind']} vs ${perfData['label']}`, 
+                            xaxis: {
+                                "title": `${perfData['label']}`
+                            }, 
+                            yaxis: {
+                                title: `${perfData['kind']}`
+                            }
+                    };
 
-            Plotly.relayout(ITEMS, update);
+                    Plotly.relayout(BAR, updatePerf);
+
+                    // Update the items bar Chart with the new data
+                    var ITEMS = document.getElementById('top-items');
+                    Plotly.restyle(ITEMS, 'x', [topItemsData['x']]);
+                    Plotly.restyle(ITEMS, 'y', [topItemsData['y']]);
+                    Plotly.restyle(ITEMS, 'text', [topItemsData['label']]);
+
+                    var updateItems = {
+                            title: `${topItemsData['kind']} vs Items`,
+                            yaxis: {
+                                title: `${topItemsData['kind']}`
+                            }
+                    };
+
+                    Plotly.relayout(ITEMS, updateItems);
+                        });
+                    });
         }
 
 
         function getData(startDate, endDate, kind, interval, callback) {
 
             // Use a request to grab the json data needed for all charts
-            console.log('*******' + `/get_charts/${startDate}/${endDate}/${kind}/${interval}`);
             Plotly.d3.json(`/get_charts/${startDate}/${endDate}/${kind}/${interval}`, function(error, perfData) {
                 //if (error) return console.warn(error);
 
@@ -194,60 +208,21 @@
         }
 
         // get the current date and time
-        var today = new Date();
-        var yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
+        var today = new Date('June 30, 2018 00:00:00');
+        var yesterday = new Date('June 29, 2018 00:00:00');
         var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
         var yesterdayDate = yesterday.getFullYear()+'-'+(yesterday.getMonth()+1)+'-'+yesterday.getDate();
 
-        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        var dateTime = date+' '+time;
-
+        // default dropdown values
         var $unitDrop = document.querySelector("#selUnits");
         var $intervalDrop = document.querySelector("#selInterval");
-        var $startDate = document.getElementById("#start-date");
-        var $endDate = document.getElementById("#end-date");
-        var $updateBtn = document.querySelector("#update");
-        var $salesBtn = document.querySelector("#sales");
-        var $itemsBtn = document.querySelector("#items");
-        console.log($startDate);
-        // update charts
-        //$updateBtn.addEventListener("submit", getData($startDate, $endDate, $unitDrop.value, $intervalDrop.value, updateCharts));
-        $updateBtn.addEventListener("submit", function(data){
-            console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"+data);
-        });
+        var $updateButton = document.querySelector("#update");
 
-
-        if (yesterdayDate != "" && date != ""){
-            console.log(yesterdayDate);
-            console.log(date);
-
-            getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
-        }
-        else{
-            console.log("Dates are empty");
-        }
         // initialize our plots
-        //getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
+        getData(yesterdayDate, date, $unitDrop.value, $intervalDrop.value, buildCharts);
 
-
-        // get sales report
-        //$salesBtn.addEventListener("click", getSalesReport);
-
-        // get items report
-        //$itemsBtn.addEventListener("click", getItemsReport);
-
-        // function getSalesReport() {
-        //     Plotly.d3.json(`/get_perf_report/${$startDate.value}/${$endDate.value}/${$intervalDrop}`, function(err, link){
-        //         return link
-        //     });
-        // }
-
-        // function getItemsReport() {
-        //     Plotly.d3.json(`get_item_report/${$startDate.value}/${$endDate.value}/${$unitDrop}/${$intervalDrop}`, function(err, link) {
-        //         return link
-        //     });
-        // }
+        // update plots
+        $updateButton.addEventListener("click", updateCharts);
 
     </script>
 
