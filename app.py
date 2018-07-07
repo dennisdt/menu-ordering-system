@@ -34,10 +34,8 @@ def send():
     button = request.form["button"]
 
     if button == 'sales':
-        print("helloworld")
         return redirect(f'/get_perf_report/{start_date}/{end_date}/{interval}')
     elif button == 'items':
-        print("another route")
         return redirect(f'/get_item_report/{start_date}/{end_date}/{kind}/{interval}')
 
 
