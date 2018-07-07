@@ -277,4 +277,4 @@ def get_item_report(start_date, end_date, kind='Revenue', interval='Hour'):
         return send_from_directory('reports/items/', f'{str(start_date.date())}_{str(end_date.date())}_items_by_{kind}_report.xlsx', as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
